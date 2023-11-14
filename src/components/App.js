@@ -1,41 +1,36 @@
-import React, { useState } from "react";
-import Question from "./Question";
-import quiz from "../data/quiz";
+import React, { useEffect, useState } from 'react';
 
-function App() {
-  const [questions, setQuestions] = useState(quiz);
-  const [currentQuestionId, setCurrentQuestion] = useState(1);
-  const [score, setScore] = useState(0);
-  const currentQuestion = questions.find((q) => q.id === currentQuestionId);
+const Question = ({ question, answers, onAnswered }) => {
+  const [timeRemaining, setTimeRemaining] = useState(10);
 
-  function handleQuestionAnswered(correct) {
-    if (currentQuestionId < questions.length) {
-      setCurrentQuestion((currentQuestionId) => currentQuestionId + 1);
-    } else {
-      setCurrentQuestion(null);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimeRemaining(prevTime => prevTime - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeRemaining]);
+
+  useEffect(() => {
+    if (timeRemaining === 0) {
+      setTimeRemaining(10);
+      onAnswered(false);
     }
-    if (correct) {
-      setScore((score) => score + 1);
-    }
-  }
+  }, [timeRemaining, onAnswered]);
 
   return (
-    <main>
-      <section>
-        {currentQuestion ? (
-          <Question
-            question={currentQuestion}
-            onAnswered={handleQuestionAnswered}
-          />
-        ) : (
-          <>
-            <h1>Game Over</h1>
-            <h2>Total Correct: {score}</h2>
-          </>
-        )}
-      </section>
-    </main>
+    <div>
+      <h2>{question.question}</h2>
+      <ul>
+        {question.options.map(answer => (
+          <li key={answer} onClick={() => onAnswered(answer === question.correctAnswer)}>
+            {answer}
+          </li>
+        ))}
+      </ul>
+      <p>Time Remaining: {timeRemaining} seconds</p>
+    </div>
   );
-}
+};
 
-export default App;
+export default Question;
